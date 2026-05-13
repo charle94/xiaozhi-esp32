@@ -183,7 +183,9 @@ void EasytierWg::Start() {
     allowed_ip_mask_buf_ = dup_str(local_ip_mask);
 
     // ── Build wireguard_config_t ─────────────────────────────────────────
-
+    // Note: wireguard_config_t.public_key holds the *peer's* public key
+    // (the field name reflects the WireGuard protocol naming convention where
+    // the remote side's key is referenced as "public_key" in the peer config).
     s_wg_config.private_key      = private_key_buf_;
     s_wg_config.public_key       = peer_pubkey_buf_;
     s_wg_config.preshared_key    = preshared_key_buf_;
@@ -208,6 +210,8 @@ void EasytierWg::Start() {
     err = esp_wireguard_connect(&s_wg_ctx);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "esp_wireguard_connect failed: %s", esp_err_to_name(err));
+        // Tear down the interface that was set up by esp_wireguard_init.
+        esp_wireguard_disconnect(&s_wg_ctx);
         FreeBuffers();
         return;
     }

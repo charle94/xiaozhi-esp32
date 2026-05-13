@@ -362,7 +362,7 @@ void McpServer::AddUserOnlyTools() {
             auto& wg = EasytierWg::GetInstance();
             wg.Stop();
             wg.Start();
-            return wg.IsConnected() || wg.IsEnabled();
+            return wg.IsConnected();
         });
 
     AddUserOnlyTool("self.easytier.disconnect",
