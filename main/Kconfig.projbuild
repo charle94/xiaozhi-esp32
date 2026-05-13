@@ -987,3 +987,78 @@ menu "TAIJIPAI_S3_CONFIG"
 endmenu
 
 endmenu
+
+menu "EasyTier WireGuard VPN"
+
+config EASYTIER_WG_ENABLED
+    bool "Enable EasyTier WireGuard VPN client"
+    default n
+    help
+        Enable the WireGuard VPN client to connect the device to an EasyTier
+        virtual network.  When enabled the device will attempt to establish a
+        WireGuard tunnel to the configured EasyTier server whenever Wi-Fi (or
+        another network interface) becomes available.
+
+config EASYTIER_WG_PRIVATE_KEY
+    string "WireGuard Private Key (base64)"
+    default ""
+    depends on EASYTIER_WG_ENABLED
+    help
+        Base64-encoded WireGuard private key for this device.
+        Generate with: wg genkey
+
+config EASYTIER_WG_PEER_PUBLIC_KEY
+    string "EasyTier Server Peer Public Key (base64)"
+    default ""
+    depends on EASYTIER_WG_ENABLED
+    help
+        Base64-encoded public key of the EasyTier server node that acts as
+        the WireGuard gateway.
+        Obtain from: easytier-cli wg-config
+
+config EASYTIER_WG_PRESHARED_KEY
+    string "WireGuard Preshared Key (base64, optional)"
+    default ""
+    depends on EASYTIER_WG_ENABLED
+    help
+        Optional base64-encoded preshared key for additional security.
+        Leave empty to disable.
+
+config EASYTIER_WG_ENDPOINT
+    string "EasyTier Server Endpoint (IP or hostname)"
+    default ""
+    depends on EASYTIER_WG_ENABLED
+    help
+        Public IP address or hostname of the EasyTier server node.
+
+config EASYTIER_WG_PORT
+    int "EasyTier WireGuard Port"
+    default 51820
+    depends on EASYTIER_WG_ENABLED
+    help
+        UDP port on which the EasyTier WireGuard portal listens.
+
+config EASYTIER_WG_LOCAL_IP
+    string "Local Virtual IP Address (assigned by EasyTier)"
+    default "10.0.0.2"
+    depends on EASYTIER_WG_ENABLED
+    help
+        Virtual IP address assigned to this device inside the EasyTier
+        network.
+
+config EASYTIER_WG_LOCAL_IP_MASK
+    string "Local Virtual IP Subnet Mask"
+    default "255.255.255.0"
+    depends on EASYTIER_WG_ENABLED
+    help
+        Subnet mask corresponding to the virtual IP address.
+
+config EASYTIER_WG_KEEPALIVE
+    int "Persistent Keepalive (seconds, 0 to disable)"
+    default 25
+    depends on EASYTIER_WG_ENABLED
+    help
+        How often (in seconds) to send a keepalive packet to maintain the
+        tunnel through NAT.  Recommended value: 25.  Set to 0 to disable.
+
+endmenu
