@@ -49,7 +49,8 @@ if [ -f "${MAIN_GO}" ]; then
     else
         # 在第一个 import 块的末尾插入空白导入
         # 使用 Python 以避免 sed 在 macOS/Linux 间的差异
-        python3 - <<'PYEOF'
+        PYEOF=$(mktemp /tmp/inject_import_XXXXXX.py)
+        cat > "${PYEOF}" <<'PYSCRIPT'
 import re, sys
 
 main_go = sys.argv[1]
@@ -67,8 +68,9 @@ new_content = re.sub(pattern, add_import, content, count=1, flags=re.DOTALL)
 with open(main_go, 'w') as f:
     f.write(new_content)
 print("==> main.go 已更新，添加了 deepseek 导入")
-PYEOF
-        python3 - "${MAIN_GO}" "${IMPORT_LINE}" || echo "==> 自动注入 import 失败，请手动在 ${MAIN_GO} 中添加: import ${IMPORT_LINE}"
+PYSCRIPT
+        python3 "${PYEOF}" "${MAIN_GO}" "${IMPORT_LINE}" || echo "==> 自动注入 import 失败，请手动在 ${MAIN_GO} 中添加: import ${IMPORT_LINE}"
+        rm -f "${PYEOF}"
     fi
 else
     echo "==> 警告: 找不到 ${MAIN_GO}"
