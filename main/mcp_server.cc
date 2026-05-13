@@ -17,6 +17,7 @@
 #include "settings.h"
 #include "lvgl_theme.h"
 #include "lvgl_display.h"
+#include "easytier_wg.h"
 
 #define TAG "MCP"
 
@@ -295,6 +296,82 @@ void McpServer::AddUserOnlyTools() {
                 settings.SetString("download_url", url);
                 return true;
             });
+
+    // EasyTier WireGuard VPN tools
+    AddUserOnlyTool("self.easytier.get_status",
+        "Get the current status of the EasyTier WireGuard VPN tunnel.",
+        PropertyList(),
+        [](const PropertyList& properties) -> ReturnValue {
+            auto& wg = EasytierWg::GetInstance();
+            cJSON* json = cJSON_CreateObject();
+            cJSON_AddBoolToObject(json, "enabled", wg.IsEnabled());
+            cJSON_AddBoolToObject(json, "connected", wg.IsConnected());
+            cJSON_AddStringToObject(json, "vpn_ip", wg.GetVpnIpAddress().c_str());
+            return json;
+        });
+
+    AddUserOnlyTool("self.easytier.set_config",
+        "Configure the EasyTier WireGuard VPN client. "
+        "All parameters are persisted in NVS and take effect on the next connection. "
+        "Call self.easytier.connect to apply immediately.",
+        PropertyList({
+            Property("enabled",        kPropertyTypeBoolean, true),
+            Property("private_key",    kPropertyTypeString,  std::string("")),
+            Property("peer_pub_key",   kPropertyTypeString,  std::string("")),
+            Property("preshared_key",  kPropertyTypeString,  std::string("")),
+            Property("endpoint",       kPropertyTypeString,  std::string("")),
+            Property("port",           kPropertyTypeInteger, 51820, 1, 65535),
+            Property("local_ip",       kPropertyTypeString,  std::string("10.0.0.2")),
+            Property("local_ip_mask",  kPropertyTypeString,  std::string("255.255.255.0")),
+            Property("keepalive",      kPropertyTypeInteger, 25, 0, 65535),
+        }),
+        [](const PropertyList& properties) -> ReturnValue {
+            Settings settings("easytier", true);
+            settings.SetBool("enabled",       properties["enabled"].value<bool>());
+            auto pk = properties["private_key"].value<std::string>();
+            if (!pk.empty()) {
+                settings.SetString("private_key", pk);
+            }
+            auto ppk = properties["peer_pub_key"].value<std::string>();
+            if (!ppk.empty()) {
+                settings.SetString("peer_pub_key", ppk);
+            }
+            auto psk = properties["preshared_key"].value<std::string>();
+            settings.SetString("preshared_key", psk);
+            auto ep = properties["endpoint"].value<std::string>();
+            if (!ep.empty()) {
+                settings.SetString("endpoint", ep);
+            }
+            settings.SetInt("port",         properties["port"].value<int>());
+            auto lip = properties["local_ip"].value<std::string>();
+            if (!lip.empty()) {
+                settings.SetString("local_ip", lip);
+            }
+            auto mask = properties["local_ip_mask"].value<std::string>();
+            if (!mask.empty()) {
+                settings.SetString("local_ip_mask", mask);
+            }
+            settings.SetInt("keepalive",    properties["keepalive"].value<int>());
+            return true;
+        });
+
+    AddUserOnlyTool("self.easytier.connect",
+        "Start or restart the EasyTier WireGuard VPN tunnel using the current configuration.",
+        PropertyList(),
+        [](const PropertyList& properties) -> ReturnValue {
+            auto& wg = EasytierWg::GetInstance();
+            wg.Stop();
+            wg.Start();
+            return wg.IsConnected();
+        });
+
+    AddUserOnlyTool("self.easytier.disconnect",
+        "Disconnect the EasyTier WireGuard VPN tunnel.",
+        PropertyList(),
+        [](const PropertyList& properties) -> ReturnValue {
+            EasytierWg::GetInstance().Stop();
+            return true;
+        });
 }
 
 void McpServer::AddTool(McpTool* tool) {

@@ -9,6 +9,7 @@
 #include "mcp_server.h"
 #include "assets.h"
 #include "settings.h"
+#include "easytier_wg.h"
 
 #include <cstring>
 #include <esp_log.h>
@@ -262,6 +263,9 @@ void Application::HandleNetworkConnectedEvent() {
     ESP_LOGI(TAG, "Network connected");
     auto state = GetDeviceState();
 
+    // Start the EasyTier WireGuard tunnel whenever the network becomes available.
+    EasytierWg::GetInstance().Start();
+
     if (state == kDeviceStateStarting || state == kDeviceStateWifiConfiguring) {
         // Network is ready, start activation
         SetDeviceState(kDeviceStateActivating);
@@ -290,6 +294,9 @@ void Application::HandleNetworkDisconnectedEvent() {
         ESP_LOGI(TAG, "Closing audio channel due to network disconnection");
         protocol_->CloseAudioChannel();
     }
+
+    // Tear down the EasyTier WireGuard tunnel when the network is gone.
+    EasytierWg::GetInstance().Stop();
 
     // Update the status bar immediately to show the network state
     auto display = Board::GetInstance().GetDisplay();
