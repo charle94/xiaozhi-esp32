@@ -6,6 +6,24 @@ config OTA_URL
     help
         The application will access this URL to check for new firmwares and server address.
 
+config WEBSOCKET_URL
+    string "Default WebSocket Server URL"
+    default ""
+    help
+        The WebSocket server URL used to connect to the AI backend service.
+        If left empty, the URL will be provided by the OTA server response.
+        When set, this value is used as fallback when the NVS-stored URL is empty,
+        allowing compile-time baking of a custom server address (e.g., a self-hosted
+        xiaozhi-server-go instance).
+
+config WEBSOCKET_ACCESS_TOKEN
+    string "Default WebSocket Access Token"
+    default ""
+    help
+        The Bearer token used to authenticate with the WebSocket server.
+        If left empty, the token will be provided by the OTA server response.
+        When set, this value is used as fallback when the NVS-stored token is empty.
+
 choice
     prompt "Flash Assets"
     default FLASH_DEFAULT_ASSETS if !USE_EMOTE_MESSAGE_STYLE

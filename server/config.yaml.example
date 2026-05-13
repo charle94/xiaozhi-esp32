@@ -1,0 +1,28 @@
+# 示例配置文件 - 包含 DeepSeek LLM Provider
+# 将此文件中的相关段落合并到 xiaozhi-server-go 的 config.yaml 中
+
+# ── LLM 配置 ─────────────────────────────────────────────────────────────────
+LLM:
+  # DeepSeek - 通用 OpenAI 兼容格式 Provider
+  # 文档：https://platform.deepseek.com/api-docs/
+  # 支持模型：deepseek-chat（V3）、deepseek-reasoner（R1）
+  DeepSeekLLM:
+    type: deepseek          # 对应注册的 "deepseek" provider
+    model_name: deepseek-chat
+    url: https://api.deepseek.com/v1   # 留空则使用 provider 内置默认值
+    api_key: 你的deepseek_api_key       # 在 https://platform.deepseek.com 获取
+    max_tokens: 4096
+    temperature: 0.7
+    top_p: 0.9
+
+  # 如需使用 DeepSeek-R1 推理模型（会自动过滤 <think> 标签）：
+  DeepSeekR1LLM:
+    type: deepseek
+    model_name: deepseek-reasoner
+    url: https://api.deepseek.com/v1
+    api_key: 你的deepseek_api_key
+    max_tokens: 8192
+
+# ── 选择使用的模块 ─────────────────────────────────────────────────────────────
+selected_module:
+  LLM: DeepSeekLLM   # 将此项设置为 DeepSeekLLM 或 DeepSeekR1LLM 以启用 DeepSeek
