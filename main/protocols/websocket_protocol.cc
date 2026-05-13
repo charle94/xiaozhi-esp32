@@ -89,6 +89,16 @@ bool WebsocketProtocol::OpenAudioChannel() {
         version_ = version;
     }
 
+    // Fall back to compile-time defaults when NVS values are empty.
+    // These can be set via menuconfig (CONFIG_WEBSOCKET_URL / CONFIG_WEBSOCKET_ACCESS_TOKEN)
+    // and serve as a baked-in server address for self-hosted deployments.
+    if (url.empty()) {
+        url = CONFIG_WEBSOCKET_URL;
+    }
+    if (token.empty()) {
+        token = CONFIG_WEBSOCKET_ACCESS_TOKEN;
+    }
+
     error_occurred_ = false;
 
     auto network = Board::GetInstance().GetNetwork();
